@@ -7,8 +7,11 @@ services:
       - "5000:5000"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ./logs:/var/log
     depends_on:
       - prometheus
+      - loki
 
   prometheus:
     image: prom/prometheus:latest
@@ -26,6 +29,8 @@ services:
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - loki
 
   loki:
     image: grafana/loki:latest
@@ -39,7 +44,10 @@ services:
   promtail:
     image: grafana/promtail:latest
     container_name: promtail
+    user: root
     volumes:
-      - /var/log:/var/log
+      - ./logs:/var/log
       - ./promtail-config.yaml:/etc/promtail/config.yml
     command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - alert-correlator

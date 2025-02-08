@@ -8,6 +8,7 @@ ingester:
     ring:
       kvstore:
         store: inmemory
+      # zone: "default"  # Removing unsupported zone configuration
       replication_factor: 1
   chunk_idle_period: 5m
   chunk_retain_period: 30s

@@ -8,7 +8,15 @@ import logging
 from prometheus_client import Counter, Gauge, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
+log_format = '%(asctime)s [%(levelname)s] %(message)s'
+logging.basicConfig(
+    level=logging.INFO,
+    format=log_format,
+    handlers=[
+        logging.FileHandler('/var/log/alert_correlator.log'),
+        logging.StreamHandler()
+    ]
+)
 
 app = Flask(__name__)
 
