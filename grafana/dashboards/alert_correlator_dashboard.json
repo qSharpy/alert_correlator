@@ -1,0 +1,114 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "iteration": 1623652911812,
+  "panels": [
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(alerts_total[1m])) by (alert_name)",
+          "format": "time_series",
+          "legendFormat": "{{alert_name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Alerts Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "options": {
+        "pieType": "pie",
+        "legend": { "show": true, "values": true }
+      },
+      "targets": [
+        {
+          "expr": "sum(alerts_total) by (service)",
+          "format": "time_series",
+          "legendFormat": "{{service}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 10 Services Triggering Alerts",
+      "type": "piechart"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 3,
+      "options": {},
+      "targets": [
+        {
+          "expr": "active_session_alerts",
+          "format": "time_series",
+          "legendFormat": "Active Session Alerts",
+          "refId": "A"
+        }
+      ],
+      "title": "Active Session Alerts",
+      "type": "gauge"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 4,
+      "options": {},
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.5, sum(rate(session_duration_seconds_bucket[1m])) by (le))",
+          "format": "time_series",
+          "legendFormat": "Median Session Duration",
+          "refId": "A"
+        }
+      ],
+      "title": "Session Duration (Median)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "id": 5,
+      "options": {},
+      "targets": [
+        {
+          "expr": "sessions_processed_total",
+          "format": "time_series",
+          "legendFormat": "Sessions Processed",
+          "refId": "A"
+        }
+      ],
+      "title": "Sessions Processed",
+      "type": "stat"
+    }
+  ],
+  "schemaVersion": 30,
+  "style": "dark",
+  "tags": [],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timezone": "",
+  "title": "Alert Correlator Dashboard",
+  "uid": "alert-correlator-dashboard",
+  "version": 1
+}
