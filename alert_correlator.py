@@ -13,10 +13,12 @@ logging.basicConfig(
     level=logging.INFO,
     format=log_format,
     handlers=[
-        logging.FileHandler('/var/log/alert_correlator.log'),
+        logging.FileHandler('/var/log/alert_correlator.log', mode='a'),
         logging.StreamHandler()
     ]
 )
+
+logger = logging.getLogger()
 
 app = Flask(__name__)
 
@@ -155,8 +157,14 @@ def session_monitor():
                     logging.info("Session window closed. Processing alerts...")
                     alerts = current_session["alerts"]
                     report = generate_incident_report(alerts)
-                    logging.info("Generated Incident Report:")
-                    logging.info("\n" + report)
+                    # Log incident report in JSON format for table view
+                    logging.info({
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "alert_count": len(alerts),
+                        "duration_seconds": session_age,
+                        "services": list(set(a.get('service', 'unknown') for a in alerts)),
+                        "report": report
+                    })
                     # Update session metrics
                     sessions_processed_total.inc()
                     session_duration_seconds.observe(session_age)
@@ -170,5 +178,4 @@ if __name__ == '__main__':
     monitor_thread = threading.Thread(target=session_monitor, daemon=True)
     monitor_thread.start()
 
-    logging.info("Starting Flask app on port 5000")
     app.run(host="0.0.0.0", port=5000)

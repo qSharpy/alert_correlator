@@ -111,7 +111,7 @@
       },
       "targets": [
         {
-          "expr": "{job=\"incident-reports\"}",
+          "expr": "{job=\"varlogs\"}",
           "format": "table",
           "refId": "A"
         }
