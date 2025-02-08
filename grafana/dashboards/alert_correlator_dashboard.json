@@ -100,6 +100,24 @@
       ],
       "title": "Sessions Processed",
       "type": "stat"
+    },
+    {
+      "datasource": "Loki",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+      "id": 6,
+      "options": {
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "expr": "{job=\"incident-reports\"}",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "title": "Incident Reports",
+      "type": "table"
     }
   ],
   "schemaVersion": 30,
