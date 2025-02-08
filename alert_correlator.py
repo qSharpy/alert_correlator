@@ -32,6 +32,9 @@ if not openai.api_key:
     raise Exception("Please set your OPENAI_API_KEY environment variable")
 
 # Prometheus metrics
+incident_number = Counter(
+    'incident_number', 'Counter for generating sequential incident numbers'
+)
 alerts_total = Counter(
     'alerts_total', 'Total number of alerts received', ['alert_name', 'severity', 'service']
 )
@@ -109,7 +112,13 @@ def metrics():
 def generate_incident_report(alerts):
     """
     Uses the OpenAI API to generate an incident report based on the list of alerts.
+    Returns a tuple of (incident_number, report).
     """
+    # Get next incident number
+    inc_num = int(incident_number._value.get()) + 1
+    incident_number.inc()
+    incident_id = f"INC{inc_num}"
+    
     alert_descriptions = "\n".join(
         [f"- {a.get('alert_name', 'Unknown')}: {a.get('description', 'No description')}" for a in alerts]
     )
@@ -117,7 +126,15 @@ def generate_incident_report(alerts):
 We received the following alerts:
 {alert_descriptions}
 
-Please provide an incident summary that correlates these alerts, identifies potential root causes, and suggests remediation steps.
+Please provide an incident analysis in the following format:
+**Incident Summary:**
+[A brief summary of the correlated alerts and their impact]
+
+**Potential Root Causes:**
+[List of potential root causes]
+
+**Remediation Steps:**
+[List of recommended steps to address the incident]
     """
     try:
         response = openai.ChatCompletion.create(
@@ -129,13 +146,13 @@ Please provide an incident summary that correlates these alerts, identifies pote
             max_tokens=150,
             temperature=0.7
         )
-        incident_report = response.choices[0].message['content'].strip()
+        report = response.choices[0].message['content'].strip()
         incident_reports_generated_total.inc()
         logging.info("Incident report generated successfully.")
     except Exception as e:
-        incident_report = f"Error generating incident report: {e}"
-        logging.error(incident_report)
-    return incident_report
+        report = f"Error generating incident report: {e}"
+        logging.error(report)
+    return incident_id, report
 
 def session_monitor():
     """
@@ -156,15 +173,10 @@ def session_monitor():
                 if inactivity_duration >= INACTIVITY_GAP or session_age >= MAX_SESSION_DURATION:
                     logging.info("Session window closed. Processing alerts...")
                     alerts = current_session["alerts"]
-                    report = generate_incident_report(alerts)
-                    # Log incident report in JSON format for table view
-                    logging.info({
-                        "timestamp": datetime.utcnow().isoformat(),
-                        "alert_count": len(alerts),
-                        "duration_seconds": session_age,
-                        "services": list(set(a.get('service', 'unknown') for a in alerts)),
-                        "report": report
-                    })
+                    incident_id, report = generate_incident_report(alerts)
+                    # Log incident report in table format
+                    logging.info(f"Generated Incident Report:")
+                    logging.info(f"{incident_id} | {report}")
                     # Update session metrics
                     sessions_processed_total.inc()
                     session_duration_seconds.observe(session_age)
