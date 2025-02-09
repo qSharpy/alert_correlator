@@ -16,3 +16,7 @@ scrape_configs:
         labels:
           job: varlogs
           __path__: /var/log/alert_correlator.log
+    pipeline_stages:
+      - multiline:
+          firstline: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}'  # Matches timestamp pattern YYYY-MM-DD HH:MM:SS
+          max_wait_time: 3s
