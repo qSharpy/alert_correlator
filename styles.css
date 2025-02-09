@@ -84,7 +84,7 @@ nav {
     padding-left: 1rem;
 }
 
-.alerts.active {
+.app-section.active .alerts {
     display: block;
 }
 
