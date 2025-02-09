@@ -1,0 +1,21 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'alert-correlator'
+
+receivers:
+- name: 'alert-correlator'
+  webhook_configs:
+  - url: 'http://localhost:5000/alert'
+    send_resolved: true
+    # Transform Alertmanager format to our backend format
+    webhook_config:
+      url: 'http://localhost:5000/alert'
+      max_alerts: 0
+    http_config:
+      follow_redirects: true
