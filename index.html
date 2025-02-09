@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alert Runbooks</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo">
+                <h1>Alert Runbooks</h1>
+            </div>
+            <div class="search">
+                <input type="text" id="searchInput" placeholder="Search...">
+            </div>
+            <nav id="alertNav">
+                <!-- Navigation will be populated by JavaScript -->
+            </nav>
+        </aside>
+        <main class="content">
+            <div id="runbookContent">
+                <!-- Runbook content will be loaded here -->
+                <div class="welcome">
+                    <h1>Welcome to Alert Runbooks</h1>
+                    <p>Select an alert from the sidebar to view its runbook.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
