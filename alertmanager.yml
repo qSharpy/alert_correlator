@@ -11,11 +11,5 @@ route:
 receivers:
 - name: 'alert-correlator'
   webhook_configs:
-  - url: 'http://localhost:5000/alert'
+  - url: 'http://alert-correlator:5000/alert'
     send_resolved: true
-    # Transform Alertmanager format to our backend format
-    webhook_config:
-      url: 'http://localhost:5000/alert'
-      max_alerts: 0
-    http_config:
-      follow_redirects: true
