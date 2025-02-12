@@ -211,69 +211,6 @@
       "type": "gauge"
     },
     {
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": 70
-              },
-              {
-                "color": "red",
-                "value": 90
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 8
-      },
-      "id": 4,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["mean"],
-          "fields": "",
-          "values": false
-        },
-        "text": {},
-        "textMode": "auto"
-      },
-      "targets": [
-        {
-          "expr": "avg(rate(system_cpu_usage[5m]) * 100)",
-          "legendFormat": "CPU Usage",
-          "refId": "A"
-        },
-        {
-          "expr": "avg(rate(system_memory_usage[5m]) * 100)",
-          "legendFormat": "Memory Usage",
-          "refId": "B"
-        }
-      ],
-      "title": "System Health",
-      "type": "stat"
-    },
-    {
       "datasource": "Loki",
       "fieldConfig": {
         "defaults": {
@@ -312,7 +249,7 @@
       },
       "targets": [
         {
-          "expr": "{job=\"varlogs\"} |~ \"Generated Incident Report\" | level=\"INFO\" | message != \"\"",
+          "expr": "{job=\"varlogs\"} |~ \"INC.*\"",
           "refId": "A"
         }
       ],
@@ -333,13 +270,32 @@
       "type": "table"
     },
     {
-      "datasource": "Loki",
-      "description": "Session monitoring and alert correlation",
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
-            "align": "auto",
-            "displayMode": "auto"
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true
           },
           "mappings": [],
           "thresholds": {
@@ -350,47 +306,102 @@
                 "value": null
               }
             ]
-          }
+          },
+          "unit": "s"
         },
         "overrides": []
       },
       "gridPos": {
         "h": 8,
-        "w": 24,
+        "w": 12,
         "x": 0,
         "y": 28
       },
-      "id": 6,
+      "id": 7,
       "options": {
-        "showHeader": true,
-        "sortBy": [
-          {
-            "desc": true,
-            "displayName": "Time"
-          }
-        ]
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": ["mean", "max"]
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
       },
       "targets": [
         {
-          "expr": "{job=\"varlogs\"} |~ \"Session window closed|Added alert\" | level=\"INFO\" | message != \"\"",
+          "expr": "rate(alert_resolution_time_seconds_sum[5m]) / rate(alert_resolution_time_seconds_count[5m])",
+          "legendFormat": "Average Resolution Time",
           "refId": "A"
         }
       ],
-      "title": "Alert Session Timeline",
-      "transformations": [
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {},
-            "indexByName": {},
-            "renameByName": {
-              "Time": "Timestamp",
-              "message": "Event Details"
+      "title": "Alert Resolution Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 70,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
             }
-          }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 28
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": ["mean", "max"]
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(correlated_alerts_total[5m])) / sum(rate(alerts_total[5m])) * 100",
+          "legendFormat": "Correlation Rate (%)",
+          "refId": "A"
         }
       ],
-      "type": "table"
+      "title": "Alert Correlation Effectiveness",
+      "type": "timeseries"
     }
   ],
   "refresh": "10s",
