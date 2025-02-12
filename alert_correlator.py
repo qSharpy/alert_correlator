@@ -95,7 +95,8 @@ def receive_alert():
         "alert_name": labels.get("alertname", "unknown"),
         "severity": labels.get("severity", "unknown"),
         "service": labels.get("job", "unknown"),
-        "description": annotations.get("description", "No description provided")
+        "description": annotations.get("description", "No description provided"),
+        "runbook_url": annotations.get("runbook_url") or labels.get("runbook", "")
     }
     
     # Extract labels (using normalized alert)
@@ -156,10 +157,17 @@ Please provide an incident analysis in the following format:
                 {"role": "system", "content": "You are an incident response assistant."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=150,
+            max_tokens=250,
             temperature=0.7
         )
         report = response.choices[0].message['content'].strip()
+        
+        # Append runbook URLs if available
+        runbook_urls = [f"{a.get('alert_name', 'Unknown')}: {a.get('runbook_url')}"
+                       for a in alerts if a.get('runbook_url')]
+        if runbook_urls:
+            report += "\n\n**Runbook URLs:**\n" + "\n".join(runbook_urls)
+        
         incident_reports_generated_total.inc()
         logging.info("Incident report generated successfully.")
     except Exception as e:
