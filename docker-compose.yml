@@ -62,3 +62,13 @@ services:
     command: -config.file=/etc/promtail/config.yml
     depends_on:
       - alert-correlator
+
+  runbooks:
+    build:
+      context: .
+      dockerfile: Dockerfile.runbooks
+    container_name: runbooks
+    ports:
+      - "3002:3000"
+    volumes:
+      - ./runbooks:/app/runbooks
