@@ -42,7 +42,7 @@ correlated_alerts_total = Counter(
     'correlated_alerts_total', 'Total number of alerts that were correlated with others'
 )
 alerts_total = Counter(
-    'alerts_total', 'Total number of alerts received', ['alert_name', 'severity', 'service']
+    'alerts_total', 'Total number of alerts received', ['alert_name', 'severity', 'service', 'status']
 )
 active_session_alerts = Gauge(
     'active_session_alerts', 'Number of alerts in the current active session'
@@ -76,53 +76,136 @@ def create_new_session(alert):
     active_session_alerts.set(len(session["alerts"]))
     return session
 
+def merge_labels_annotations(common_labels, common_annotations, alert_labels, alert_annotations):
+    """Merge common labels/annotations with alert-specific ones."""
+    labels = common_labels.copy() if common_labels else {}
+    labels.update(alert_labels or {})
+    
+    annotations = common_annotations.copy() if common_annotations else {}
+    annotations.update(alert_annotations or {})
+    
+    return labels, annotations
+
 @app.route('/alert', methods=['POST'])
 def receive_alert():
     """
-    Endpoint to receive an alert.
-    Expected JSON (Prometheus-style alert, with an additional "service" label):
+    Endpoint to receive alerts from AlertManager webhook.
+    Expected format:
     {
-        "alert_name": "HighErrorRate",
-        "severity": "critical",
-        "service": "ServiceA",
-        "description": "Error rate exceeded threshold on ServiceA"
+        "version": "4",
+        "groupKey": <string>,
+        "truncatedAlerts": <int>,
+        "status": "<resolved|firing>",
+        "receiver": <string>,
+        "groupLabels": <object>,
+        "commonLabels": <object>,
+        "commonAnnotations": <object>,
+        "externalURL": <string>,
+        "alerts": [
+            {
+                "status": "<resolved|firing>",
+                "labels": <object>,
+                "annotations": <object>,
+                "startsAt": "<rfc3339>",
+                "endsAt": "<rfc3339>",
+                "generatorURL": <string>,
+                "fingerprint": <string>
+            },
+            ...
+        ]
     }
     """
     global current_session
-    raw_alert = request.get_json()
-    now = datetime.utcnow()
     
-    # Extract information from Alertmanager format
-    labels = raw_alert.get("labels", {})
-    annotations = raw_alert.get("annotations", {})
-    
-    # Create normalized alert format
-    alert = {
-        "alert_name": labels.get("alertname", "unknown"),
-        "severity": labels.get("severity", "unknown"),
-        "service": labels.get("job", "unknown"),
-        "description": annotations.get("description", "No description provided"),
-        "runbook_url": annotations.get("runbook_url") or labels.get("runbook", "")
-    }
-    
-    # Extract labels (using normalized alert)
-    alert_name = alert["alert_name"]
-    severity = alert["severity"]
-    service = alert["service"]
+    try:
+        webhook_data = request.get_json()
+        if not webhook_data:
+            raise ValueError("No JSON data received")
+            
+        # Extract common fields
+        common_labels = webhook_data.get('commonLabels', {})
+        common_annotations = webhook_data.get('commonAnnotations', {})
+        group_key = webhook_data.get('groupKey', '')
+        external_url = webhook_data.get('externalURL', '')
+        webhook_status = webhook_data.get('status', 'unknown')
+        
+        # Log webhook metadata
+        logging.info(f"Received AlertManager webhook - Status: {webhook_status}, GroupKey: {group_key}")
+        if webhook_data.get('truncatedAlerts', 0) > 0:
+            logging.warning(f"Alert group truncated - {webhook_data['truncatedAlerts']} alerts omitted")
+            
+        alerts_data = webhook_data.get('alerts', [])
+        if not alerts_data:
+            logging.warning("No alerts found in webhook data")
+            return jsonify({"status": "warning", "message": "No alerts found in webhook data"}), 200
+            
+        for alert_data in alerts_data:
+            now = datetime.utcnow()
+            
+            # Merge common labels/annotations with alert-specific ones
+            labels, annotations = merge_labels_annotations(
+                common_labels,
+                common_annotations,
+                alert_data.get('labels', {}),
+                alert_data.get('annotations', {})
+            )
+            
+            # Create normalized alert format
+            alert = {
+                "alert_name": labels.get("alertname", "unknown"),
+                "severity": labels.get("severity", "unknown"),
+                "service": labels.get("job", "unknown"),
+                "instance": labels.get("instance", "unknown"),
+                "description": annotations.get("description", "No description provided"),
+                "runbook_url": annotations.get("runbook_url") or labels.get("runbook", ""),
+                "status": alert_data.get("status", "unknown"),
+                "starts_at": alert_data.get("startsAt"),
+                "ends_at": alert_data.get("endsAt"),
+                "generator_url": alert_data.get("generatorURL"),
+                "fingerprint": alert_data.get("fingerprint"),
+                "group_key": group_key,
+                "external_url": external_url,
+                # Store all additional labels for reference
+                "additional_labels": {k: v for k, v in labels.items() 
+                                   if k not in ["alertname", "severity", "job", "instance", "runbook"]},
+                # Store all additional annotations
+                "additional_annotations": {k: v for k, v in annotations.items() 
+                                        if k not in ["description", "runbook_url"]}
+            }
+            
+            # Extract labels for metrics
+            alert_name = alert["alert_name"]
+            severity = alert["severity"]
+            service = alert["service"]
+            status = alert["status"]
 
-    # Increment the alert counter with labels.
-    alerts_total.labels(alert_name=alert_name, severity=severity, service=service).inc()
+            # Increment the alert counter with labels
+            alerts_total.labels(
+                alert_name=alert_name,
+                severity=severity,
+                service=service,
+                status=status
+            ).inc()
 
-    with session_lock:
-        if current_session is None:
-            current_session = create_new_session(alert)
-        else:
-            current_session["alerts"].append(alert)
-            current_session["last_alert_time"] = now
-            active_session_alerts.set(len(current_session["alerts"]))
-            logging.info(f"Added alert at {now.isoformat()}: {alert}")
+            with session_lock:
+                if current_session is None:
+                    current_session = create_new_session(alert)
+                else:
+                    current_session["alerts"].append(alert)
+                    current_session["last_alert_time"] = now
+                    active_session_alerts.set(len(current_session["alerts"]))
+                    logging.info(f"Added alert at {now.isoformat()}: {alert}")
 
-    return jsonify({"status": "alert received"}), 200
+        return jsonify({
+            "status": "success",
+            "message": f"Processed {len(alerts_data)} alerts",
+            "group_key": group_key
+        }), 200
+        
+    except Exception as e:
+        error_msg = f"Error processing webhook: {str(e)}"
+        logging.error(error_msg)
+        return jsonify({"status": "error", "message": error_msg}), 400
 
 @app.route('/metrics')
 def metrics():
@@ -139,12 +222,28 @@ def generate_incident_report(alerts):
     incident_number.inc()
     incident_id = f"INC{inc_num}"
     
-    alert_descriptions = "\n".join(
-        [f"- {a.get('alert_name', 'Unknown')}: {a.get('description', 'No description')}" for a in alerts]
-    )
+    alert_descriptions = []
+    for a in alerts:
+        status_str = f"[{a['status'].upper()}]" if a['status'] != "unknown" else ""
+        description = f"- {a['alert_name']} {status_str} ({a['severity']}) on {a['instance']}: {a['description']}"
+        
+        # Add any relevant metrics from additional labels
+        metrics = [f"{k}={v}" for k, v in a.get('additional_labels', {}).items() 
+                  if any(metric in k.lower() for metric in ['threshold', 'count', 'rate', 'latency', 'usage'])]
+        if metrics:
+            description += f" [Metrics: {', '.join(metrics)}]"
+            
+        # Add timing information if available
+        if a.get('ends_at'):
+            description += f" (Resolved at: {a['ends_at']})"
+            
+        alert_descriptions.append(description)
+    
+    alert_text = "\n".join(alert_descriptions)
+    
     prompt = f"""
 We received the following alerts:
-{alert_descriptions}
+{alert_text}
 
 Please provide an incident analysis in the following format:
 **Incident Summary:**
@@ -169,10 +268,15 @@ Please provide an incident analysis in the following format:
         report = response.choices[0].message['content'].strip()
         
         # Append runbook URLs if available
-        runbook_urls = [f"{a.get('alert_name', 'Unknown')}: {a.get('runbook_url')}"
+        runbook_urls = [f"{a['alert_name']}: {a['runbook_url']}"
                        for a in alerts if a.get('runbook_url')]
         if runbook_urls:
             report += "\n\n**Runbook URLs:**\n" + "\n".join(runbook_urls)
+        
+        # Append external URLs if available
+        external_urls = set(a['external_url'] for a in alerts if a.get('external_url'))
+        if external_urls:
+            report += "\n\n**AlertManager URLs:**\n" + "\n".join(external_urls)
         
         incident_reports_generated_total.inc()
         logging.info("Incident report generated successfully.")
