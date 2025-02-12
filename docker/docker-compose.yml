@@ -1,14 +1,17 @@
-version: '3'
 services:
   alert-correlator:
-    build: .
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
     container_name: alert-correlator
     ports:
       - "5000:5000"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
-      - ./logs:/var/log
+      - ../logs:/var/log
+      - ../backend:/app/backend
+      - ../frontend:/app/frontend
     depends_on:
       - prometheus
       - loki
@@ -19,7 +22,7 @@ services:
     ports:
       - "9093:9093"
     volumes:
-      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - ../config/monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
       - '--web.external-url=http://localhost:9093'
@@ -28,7 +31,7 @@ services:
     image: prom/prometheus:latest
     container_name: prometheus
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../config/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
 
@@ -38,8 +41,8 @@ services:
     ports:
       - "3001:3000"
     volumes:
-      - ./grafana/provisioning:/etc/grafana/provisioning
-      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - ../grafana/provisioning:/etc/grafana/provisioning
+      - ../grafana/dashboards:/var/lib/grafana/dashboards
     depends_on:
       - loki
 
@@ -50,25 +53,25 @@ services:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
-      - ./loki-config.yaml:/etc/loki/local-config.yaml
+      - ../config/logging/loki-config.yaml:/etc/loki/local-config.yaml
 
   promtail:
     image: grafana/promtail:latest
     container_name: promtail
     user: root
     volumes:
-      - ./logs:/var/log
-      - ./promtail-config.yaml:/etc/promtail/config.yml
+      - ../logs:/var/log
+      - ../config/logging/promtail-config.yaml:/etc/promtail/config.yml
     command: -config.file=/etc/promtail/config.yml
     depends_on:
       - alert-correlator
 
   runbooks:
     build:
-      context: .
-      dockerfile: Dockerfile.runbooks
+      context: ..
+      dockerfile: docker/Dockerfile.runbooks
     container_name: runbooks
     ports:
       - "3002:3000"
     volumes:
-      - ./runbooks:/app/runbooks
+      - ../runbooks:/app/runbooks

@@ -8,11 +8,11 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy application files
-COPY server.js .
-COPY index.html .
-COPY styles.css .
-COPY script.js .
+# Copy application files from their new locations
+COPY frontend/index.html .
+COPY frontend/styles.css .
+COPY frontend/script.js .
+COPY backend/server.js .
 COPY runbooks/ ./runbooks/
 
 # Expose the port the app runs on

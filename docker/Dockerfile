@@ -8,15 +8,16 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application code.
-COPY . .
+# Copy the application code from the new directory structure
+COPY backend/ backend/
+COPY frontend/ frontend/
 
 # Expose the port that Flask will run on.
 EXPOSE 5000
 
 # Set environment variables for Flask.
-ENV FLASK_APP=alert_correlator.py
+ENV FLASK_APP=backend/alert_correlator.py
 ENV FLASK_RUN_HOST=0.0.0.0
 
 # Start the application.
-CMD ["python", "alert_correlator.py"]
+CMD ["python", "backend/alert_correlator.py"]

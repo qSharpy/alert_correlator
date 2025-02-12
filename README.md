@@ -11,6 +11,24 @@ A powerful alert correlation system that helps reduce alert fatigue by intellige
 - Comprehensive runbooks for common scenarios
 - Docker-based deployment for easy setup
 
+## 📁 Project Structure
+
+The project is organized into the following main directories:
+- `backend/`: Contains the core application logic
+  - `alert_correlator.py`: Main correlation engine
+  - `server.js`: API server
+- `config/`: Configuration files for monitoring and logging
+  - `logging/`: Loki and Promtail configurations
+  - `monitoring/`: Prometheus and AlertManager configurations
+- `docker/`: Docker-related files
+  - `Dockerfile`: Main application container
+  - `docker-compose.yml`: Service orchestration
+  - `.env`: Environment variables
+- `frontend/`: Web interface files
+- `grafana/`: Grafana provisioning and dashboards
+- `runbooks/`: Documentation for various scenarios
+- `logs/`: Application logs
+
 ## 🔧 Prerequisites
 
 - Docker and Docker Compose
@@ -28,9 +46,9 @@ cd alert_correlator
 
 2. Set up environment configuration:
 
-Create a `.env` file in the root directory with your OpenAI API key:
+Create or modify the `.env` file in the `docker` directory with your OpenAI API key:
 ```bash
-OPENAI_API_KEY=your_openai_api_key_here
+echo "OPENAI_API_KEY=your_openai_api_key_here" > docker/.env
 ```
 
 3. Create the logs directory and log file:
@@ -41,7 +59,7 @@ touch logs/alert_correlator.log
 
 4. Start the services:
 ```bash
-docker-compose up -d
+docker compose -f docker/docker-compose.yml up -d
 ```
 
 ## 📊 Accessing the Services
@@ -71,19 +89,20 @@ After starting the containers, you can access the following services:
 ### Alert Correlator
 
 The main configuration is done through environment variables and the following files:
-- `alert_correlator.py`: Main correlation logic
-- `alertmanager.yml`: AlertManager configuration
-- `prometheus.yml`: Prometheus configuration
-- `loki-config.yaml`: Loki configuration
-- `promtail-config.yaml`: Log shipping configuration
+- `backend/alert_correlator.py`: Main correlation logic
+- `config/monitoring/alertmanager.yml`: AlertManager configuration
+- `config/monitoring/prometheus.yml`: Prometheus configuration
+- `config/logging/loki-config.yaml`: Loki configuration
+- `config/logging/promtail-config.yaml`: Log shipping configuration
 
 ### Runbooks
 
-Predefined runbooks are available in the `runbooks/` directory for common scenarios:
-- AlertManager related issues
-- Prometheus troubleshooting
-- High memory usage handling
-- Storage issues
+Predefined runbooks are available in the `runbooks/` directory, organized by component:
+- `alertmanager/`: AlertManager related issues
+- `prometheus/`: Prometheus troubleshooting
+- `kubernetes/`: Kubernetes cluster issues
+- `grafana/`: Grafana-related problems
+- `azure-devops/`: Azure DevOps pipeline issues
 
 ## 🔍 Testing
 
@@ -96,7 +115,7 @@ make help
 ## 📝 Logging
 
 Logs are available in:
-- Docker logs: `docker-compose logs -f [service_name]`
+- Docker logs: `docker compose -f docker/docker-compose.yml logs -f [service_name]`
 - Application logs: `logs/alert_correlator.log`
 - Through Loki in Grafana
 
