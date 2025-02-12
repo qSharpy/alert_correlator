@@ -12,6 +12,29 @@ const runbookStructure = {
             'high_query_load': 'High Query Load',
             'storage_filling_up': 'Storage Filling Up'
         }
+    },
+    'kubernetes': {
+        name: 'Kubernetes',
+        alerts: {
+            'pod_crashlooping': 'Pod CrashLooping',
+            'node_not_ready': 'Node Not Ready',
+            'persistent_volume_failures': 'Persistent Volume Failures'
+        }
+    },
+    'azure-devops': {
+        name: 'Azure DevOps',
+        alerts: {
+            'pipeline_failures': 'Pipeline Failures',
+            'agent_pool_exhaustion': 'Agent Pool Exhaustion'
+        }
+    },
+    'grafana': {
+        name: 'Grafana',
+        alerts: {
+            'dashboard_loading_failures': 'Dashboard Loading Failures',
+            'datasource_connection_issues': 'Data Source Connection Issues',
+            'high_query_latency': 'High Query Latency'
+        }
     }
 };
 
