@@ -83,12 +83,25 @@ def receive_alert():
     }
     """
     global current_session
-    alert = request.get_json()
+    raw_alert = request.get_json()
     now = datetime.utcnow()
-    # Extract labels (using "unknown" if not provided)
-    alert_name = alert.get("alert_name", "unknown")
-    severity = alert.get("severity", "unknown")
-    service = alert.get("service", "unknown")
+    
+    # Extract information from Alertmanager format
+    labels = raw_alert.get("labels", {})
+    annotations = raw_alert.get("annotations", {})
+    
+    # Create normalized alert format
+    alert = {
+        "alert_name": labels.get("alertname", "unknown"),
+        "severity": labels.get("severity", "unknown"),
+        "service": labels.get("job", "unknown"),
+        "description": annotations.get("description", "No description provided")
+    }
+    
+    # Extract labels (using normalized alert)
+    alert_name = alert["alert_name"]
+    severity = alert["severity"]
+    service = alert["service"]
 
     # Increment the alert counter with labels.
     alerts_total.labels(alert_name=alert_name, severity=severity, service=service).inc()
