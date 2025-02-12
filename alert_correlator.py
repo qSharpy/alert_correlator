@@ -35,6 +35,12 @@ if not openai.api_key:
 incident_number = Counter(
     'incident_number', 'Counter for generating sequential incident numbers'
 )
+alert_resolution_time_seconds = Histogram(
+    'alert_resolution_time_seconds', 'Time taken to resolve alerts'
+)
+correlated_alerts_total = Counter(
+    'correlated_alerts_total', 'Total number of alerts that were correlated with others'
+)
 alerts_total = Counter(
     'alerts_total', 'Total number of alerts received', ['alert_name', 'severity', 'service']
 )
@@ -202,6 +208,15 @@ def session_monitor():
                     sessions_processed_total.inc()
                     session_duration_seconds.observe(session_age)
                     session_alerts_total.inc(len(alerts))
+                    
+                    # Track resolution time and correlated alerts
+                    resolution_time = (current_session["last_alert_time"] - current_session["start_time"]).total_seconds()
+                    alert_resolution_time_seconds.observe(resolution_time)
+                    
+                    # If we have multiple alerts in the session, they were correlated
+                    if len(alerts) > 1:
+                        correlated_alerts_total.inc(len(alerts))
+                    
                     # Reset active session gauge and the session itself
                     active_session_alerts.set(0)
                     current_session = None
