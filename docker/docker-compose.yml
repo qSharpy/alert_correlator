@@ -28,9 +28,9 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OLLAMA_BASE_URL=http://ollama:11434
       - OLLAMA_MODEL=${OLLAMA_MODEL}
-    depends_on:
-      ollama:
-        condition: service_healthy
+    # depends_on:
+    #   ollama:
+    #     condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--spider", "http://localhost:3003"]
       interval: 10s
@@ -44,11 +44,11 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:11434"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
 
   alertmanager:
     image: prom/alertmanager:latest

@@ -5,6 +5,7 @@ from flask import Flask, request, jsonify
 import openai
 import os
 import logging
+import requests
 from prometheus_client import Counter, Gauge, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
 # Configure logging
@@ -26,10 +27,21 @@ app = Flask(__name__)
 INACTIVITY_GAP = 30          # seconds of inactivity before closing session
 MAX_SESSION_DURATION = 1800  # maximum session window in seconds (30 minutes)
 
-# Set your OpenAI API key via an environment variable
+# Set OpenAI configuration
 openai.api_key = os.getenv("OPENAI_API_KEY")
 if not openai.api_key:
     raise Exception("Please set your OPENAI_API_KEY environment variable")
+
+def get_llm_config():
+    """Get current LLM configuration from llm-service"""
+    try:
+        response = requests.get('http://llm-service:3003/api/config/llm')
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        logging.error(f"Failed to get LLM config: {e}")
+        # Default fallback configuration
+        return {"provider": "openai", "model": "gpt-3.5-turbo"}
 
 # Prometheus metrics
 incident_number = Counter(
@@ -255,17 +267,40 @@ Please provide an incident analysis in the following format:
 **Remediation Steps:**
 [List of recommended steps to address the incident]
     """
+    # Get current LLM configuration
+    llm_config = get_llm_config()
+    provider = llm_config["provider"]
+    model = llm_config["model"]
+    
+    # Initialize model_info
+    model_info = f"LLM: {provider}-{model}"
+    
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are an incident response assistant."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=250,
-            temperature=0.7
-        )
-        report = response.choices[0].message['content'].strip()
+        if provider == "ollama":
+            # Ollama API call
+            response = requests.post('http://ollama:11434/api/generate',
+                json={
+                    "model": model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "max_tokens": 250,
+                    "temperature": 0.7
+                }
+            )
+            response.raise_for_status()
+            report = response.json()['response'].strip()
+        else:
+            # OpenAI API call
+            response = openai.ChatCompletion.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": "You are an incident response assistant."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=250,
+                temperature=0.7
+            )
+            report = response.choices[0].message['content'].strip()
         
         # Append runbook URLs if available
         runbook_urls = [f"{a['alert_name']}: {a['runbook_url']}"
@@ -283,7 +318,7 @@ Please provide an incident analysis in the following format:
     except Exception as e:
         report = f"Error generating incident report: {e}"
         logging.error(report)
-    return incident_id, report
+    return incident_id, report, model_info
 
 def session_monitor():
     """
@@ -304,10 +339,10 @@ def session_monitor():
                 if inactivity_duration >= INACTIVITY_GAP or session_age >= MAX_SESSION_DURATION:
                     logging.info("Session window closed. Processing alerts...")
                     alerts = current_session["alerts"]
-                    incident_id, report = generate_incident_report(alerts)
+                    incident_id, report, model_info = generate_incident_report(alerts)
                     # Log incident report in table format
                     logging.info(f"Generated Incident Report:")
-                    logging.info(f"{incident_id} | {report}")
+                    logging.info(f"{incident_id} | {report}\n{model_info}")
                     # Update session metrics
                     sessions_processed_total.inc()
                     session_duration_seconds.observe(session_age)
