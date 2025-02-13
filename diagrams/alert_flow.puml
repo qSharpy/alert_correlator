@@ -1,0 +1,74 @@
+@startuml Alert Correlation Flow
+
+' Define participants
+participant "External\nSystem" as ext
+participant "Alert\nManager" as am
+participant "Backend\nService" as backend
+participant "LLM\nService" as llm
+database "Runbooks\nRepository" as runbooks
+database "Loki" as loki
+participant "Grafana" as grafana
+
+' Define some styling
+skinparam ParticipantPadding 20
+skinparam BoxPadding 10
+
+box "Alert Processing Flow" #LightBlue
+    participant am
+    participant backend
+    participant llm
+end box
+
+box "Storage & Visualization" #LightGreen
+    database loki
+    participant grafana
+end box
+
+' Show the general flow
+ext -> am: Send alerts via webhook
+am -> backend: Forward alerts via webhook
+backend -> loki: Log incoming alerts
+backend -> llm: Process alerts with context
+llm -> runbooks: Access runbook knowledge
+llm --> backend: Return correlation analysis
+backend -> loki: Log correlation results
+loki -> grafana: Display logs and alerts
+
+' Example with specific alerts
+note over ext
+Example: Two Kubernetes Alerts
+1. Pod CrashLooping in namespace: monitoring
+2. Node Not Ready: worker-node-1
+end note
+
+ext -> am: Alert 1: Pod CrashLooping
+ext -> am: Alert 2: Node Not Ready
+
+am -> backend: Combined alerts webhook
+activate backend
+
+backend -> llm: Process alerts with context
+activate llm
+note right of llm
+Analyzing correlation:
+- Node not ready could cause pods to crash
+- Temporal proximity of alerts
+- Same cluster/environment
+end note
+llm --> backend: "High correlation (90%)\nRoot cause: Node issues\nRecommended action: Check node-1"
+deactivate llm
+
+backend -> loki: Store correlation results
+loki -> grafana: Update dashboard
+
+note over grafana
+Dashboard shows:
+- Original alerts
+- Correlation strength
+- Root cause analysis
+- Recommended actions
+end note
+
+deactivate backend
+
+@enduml

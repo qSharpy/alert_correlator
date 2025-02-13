@@ -1,0 +1,89 @@
+@startuml Simple Alert Correlation Flow
+
+' Use modern style
+skinparam monochrome false
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam ArrowColor #666666
+skinparam ComponentStyle uml2
+skinparam NoteBackgroundColor #FEFECE
+skinparam NoteBorderColor #A80036
+
+' Define components
+[curl command] as curl #LightGray
+[Alert Manager] as am #LightBlue
+[Backend Service] as be #LightGreen
+[LLM Service] as llm #LightYellow
+[Grafana] as graf #LightPink
+
+' Add title
+title Alert Correlation System with Example Payloads
+
+' Define the flow
+curl -right-> am : Send alert\nvia webhook
+am -right-> be : Forward alerts
+be -right-> llm : Process with\ncontext
+llm -down-> be : Return analysis
+be -right-> graf : Show results
+
+' Add example payloads
+note left of curl
+Example curl payload:
+{
+  "alerts": [{
+    "status": "firing",
+    "labels": {
+      "alertname": "KubePodCrashLooping",
+      "namespace": "monitoring",
+      "pod": "prometheus-k8s-0"
+    },
+    "annotations": {
+      "description": "Pod monitoring/prometheus-k8s-0 
+                      is crash looping"
+    }
+  }]
+}
+end note
+
+note bottom of be
+Backend to LLM request:
+{
+  "alerts": [{...}],  // Original alerts
+  "context": {
+    "cluster": "prod-east",
+    "timeWindow": "5m",
+    "relatedAlerts": 2,
+    "runbookRefs": [
+      "kubernetes/pod_crashlooping.md"
+    ]
+  }
+}
+end note
+
+note bottom of llm
+LLM Analysis Response:
+{
+  "incidentSummary": "Pod crash loop in monitoring namespace",
+  "incidentId": "INC-2024-001",
+  "severity": "HIGH",
+  "rootCause": "Memory pressure on node",
+  "confidence": 0.85,
+  "recommendedActions": [
+    "Check node resources",
+    "Review pod memory limits"
+  ],
+  "relatedIncidents": ["INC-2024-002"]
+}
+end note
+
+' Add legend
+legend right
+  |= Component |= Role |
+  |<#LightGray>| Trigger alert |
+  |<#LightBlue>| Receive & route |
+  |<#LightGreen>| Process & enrich |
+  |<#LightYellow>| Analyze |
+  |<#LightPink>| Visualize |
+endlegend
+
+@enduml
