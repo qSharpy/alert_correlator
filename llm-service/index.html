@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 800px;
+            max-width: 1000px;
             margin: 2rem auto;
             padding: 0 1rem;
             background: #f5f5f5;
@@ -20,28 +20,113 @@
         }
         h1 {
             color: #1976d2;
+            margin-bottom: 1rem;
+        }
+        .provider-section {
             margin-bottom: 2rem;
         }
-        .form-group {
-            margin-bottom: 1.5rem;
+        .provider-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
         }
-        select {
-            width: 100%;
-            padding: 0.5rem;
-            font-size: 1rem;
-            border: 1px solid #ccc;
+        .provider-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .model-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1rem;
+            background: #fff;
+            transition: box-shadow 0.2s;
+        }
+        .model-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .model-card.selected {
+            border-color: #1976d2;
+            background: #e3f2fd;
+        }
+        .model-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .model-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .install-button {
+            padding: 0.5rem 1rem;
+            color: white;
+            border: none;
             border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
             margin-top: 0.5rem;
         }
-        .model-section {
-            margin-top: 1rem;
-            padding: 1rem;
-            border: 1px solid #e0e0e0;
+        .install-button.install {
+            background: #1976d2;
+        }
+        .install-button.uninstall {
+            background: #dc3545;
+        }
+        .install-button:hover {
+            opacity: 0.9;
+        }
+        .install-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .check-icon {
+            color: #2e7d32;
+            font-size: 1.2rem;
+        }
+        .select-button {
+            padding: 0.5rem 1rem;
+            background: #1976d2;
+            color: white;
+            border: none;
             border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+        .select-button.selected {
+            background: #2e7d32;
+        }
+        .progress-bar {
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            margin-top: 0.5rem;
+            overflow: hidden;
             display: none;
         }
-        .model-section.active {
+        .progress-bar.active {
             display: block;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: #1976d2;
+            width: 100%;
+            animation: progress 2s infinite linear;
+            transform-origin: 0 50%;
+        }
+        @keyframes progress {
+            0% { transform: scaleX(0); }
+            50% { transform: scaleX(0.5); }
+            100% { transform: scaleX(1); }
         }
         .status {
             margin-top: 1rem;
@@ -60,100 +145,43 @@
             color: #c62828;
             display: block;
         }
-        .model-status {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        .install-button {
-            padding: 0.5rem 1rem;
-            background: #1976d2;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            display: none;
-        }
-        .install-button:hover {
-            background: #1565c0;
-        }
-        .install-button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        .check-icon {
-            color: #2e7d32;
-            font-size: 1.2rem;
-            display: none;
-        }
-        .loading {
-            display: inline-block;
-            width: 1.2rem;
-            height: 1.2rem;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #1976d2;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 0.5rem;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>LLM Provider Selection</h1>
-        <div class="form-group">
-            <label for="llmProvider">Select LLM Provider:</label>
-            <select id="llmProvider">
-                <option value="openai">OpenAI GPT</option>
-                <option value="ollama">Ollama (Local)</option>
-            </select>
+        
+        <div class="provider-section">
+            <div class="provider-header">
+                <div class="provider-name">OpenAI GPT Models</div>
+            </div>
+            <div id="gptModelsGrid" class="models-grid"></div>
         </div>
 
-        <div id="gptSection" class="model-section">
-            <div class="form-group">
-                <label for="gptModel">Select GPT Model:</label>
-                <select id="gptModel"></select>
+        <div class="provider-section">
+            <div class="provider-header">
+                <div class="provider-name">Ollama Models (Local)</div>
             </div>
-        </div>
-
-        <div id="ollamaSection" class="model-section">
-            <div class="form-group">
-                <label for="ollamaModel">Select Ollama Model:</label>
-                <select id="ollamaModel"></select>
-            </div>
-            <div class="model-status">
-                <span id="modelStatusText"></span>
-                <button id="installButton" class="install-button">Install Model</button>
-                <span id="checkIcon" class="check-icon">✓</span>
-            </div>
+            <div id="ollamaModelsGrid" class="models-grid"></div>
         </div>
 
         <div id="status" class="status"></div>
     </div>
 
     <script>
-        const providerSelect = document.getElementById('llmProvider');
-        const gptSection = document.getElementById('gptSection');
-        const ollamaSection = document.getElementById('ollamaSection');
-        const gptModelSelect = document.getElementById('gptModel');
-        const ollamaModelSelect = document.getElementById('ollamaModel');
+        const gptModelsGrid = document.getElementById('gptModelsGrid');
+        const ollamaModelsGrid = document.getElementById('ollamaModelsGrid');
         const status = document.getElementById('status');
-        const modelStatusText = document.getElementById('modelStatusText');
-        const installButton = document.getElementById('installButton');
-        const checkIcon = document.getElementById('checkIcon');
+        let currentProvider = '';
+        let currentModel = '';
 
         // Load GPT models
         async function loadGptModels() {
             try {
                 const response = await fetch('/api/models/gpt');
                 const data = await response.json();
-                gptModelSelect.innerHTML = data.models
-                    .map(model => `<option value="${model}">${model}</option>`)
+                gptModelsGrid.innerHTML = data.models
+                    .map(model => createGptModelCard(model))
                     .join('');
             } catch (error) {
                 console.error('Failed to load GPT models:', error);
@@ -168,63 +196,116 @@
                 const response = await fetch('/api/models/ollama');
                 const data = await response.json();
                 
-                ollamaModelSelect.innerHTML = data.models
-                    .map(model => `<option value="${model.name}">${model.displayName}</option>`)
+                ollamaModelsGrid.innerHTML = data.models
+                    .map(model => createOllamaModelCard(model))
                     .join('');
 
                 if (data.status === 'live') {
-                    checkOllamaModelStatus();
+                    updateAllOllamaModelStatuses();
                 } else {
-                    modelStatusText.textContent = 'Ollama service starting...';
-                    setTimeout(loadOllamaModels, 2000); // Retry after 2 seconds
+                    setTimeout(loadOllamaModels, 2000);
                 }
             } catch (error) {
                 console.error('Failed to load Ollama models:', error);
-                modelStatusText.textContent = 'Ollama service not available';
-                setTimeout(loadOllamaModels, 2000); // Retry after 2 seconds
+                setTimeout(loadOllamaModels, 2000);
             }
         }
 
-        // Check if Ollama model is installed
-        async function checkOllamaModelStatus() {
-            const model = ollamaModelSelect.value;
+        function createGptModelCard(model) {
+            const isSelected = currentProvider === 'openai' && currentModel === model;
+            return `
+                <div class="model-card ${isSelected ? 'selected' : ''}" id="gpt-${model}">
+                    <div class="model-name">${model}</div>
+                    <button class="select-button ${isSelected ? 'selected' : ''}"
+                            onclick="selectModel('openai', '${model}')">
+                        ${isSelected ? 'Selected' : 'Select'}
+                    </button>
+                </div>
+            `;
+        }
+
+        function createOllamaModelCard(model) {
+            const isSelected = currentProvider === 'ollama' && currentModel === model.name;
+            return `
+                <div class="model-card ${isSelected ? 'selected' : ''}" id="ollama-${model.name}">
+                    <div class="model-name">${model.displayName}</div>
+                    <div class="model-status" id="status-${model.name}">
+                        <span id="status-text-${model.name}">Checking status...</span>
+                    </div>
+                    <div class="progress-bar" id="progress-${model.name}">
+                        <div class="progress-bar-fill"></div>
+                    </div>
+                    <button class="install-button install" id="install-${model.name}"
+                            onclick="installOllamaModel('${model.name}')" style="display: none">
+                        Install Model
+                    </button>
+                    <button class="install-button uninstall" id="uninstall-${model.name}"
+                            onclick="uninstallOllamaModel('${model.name}')" style="display: none">
+                        Uninstall
+                    </button>
+                    <button class="select-button ${isSelected ? 'selected' : ''}" id="select-${model.name}"
+                            onclick="selectModel('ollama', '${model.name}')" style="display: none">
+                        ${isSelected ? 'Selected' : 'Select'}
+                    </button>
+                </div>
+            `;
+        }
+
+        async function updateAllOllamaModelStatuses() {
+            const models = document.querySelectorAll('[id^="ollama-"]');
+            models.forEach(model => {
+                const modelName = model.id.replace('ollama-', '');
+                checkOllamaModelStatus(modelName);
+            });
+        }
+
+        async function checkOllamaModelStatus(modelName) {
+            const statusText = document.getElementById(`status-text-${modelName}`);
+            const installButton = document.getElementById(`install-${modelName}`);
+            const uninstallButton = document.getElementById(`uninstall-${modelName}`);
+            const selectButton = document.getElementById(`select-${modelName}`);
+            
             try {
-                const response = await fetch(`/api/models/ollama/${model}/status`);
+                const response = await fetch(`/api/models/ollama/${modelName}/status`);
                 const data = await response.json();
                 
                 if (data.installed) {
-                    modelStatusText.textContent = 'Model is installed';
+                    statusText.textContent = 'Installed';
+                    statusText.style.color = '#2e7d32';
                     installButton.style.display = 'none';
-                    checkIcon.style.display = 'inline';
+                    uninstallButton.style.display = 'block';
+                    selectButton.style.display = 'block';
                 } else {
-                    modelStatusText.textContent = 'Model is not installed';
-                    installButton.style.display = 'inline';
-                    checkIcon.style.display = 'none';
+                    statusText.textContent = 'Not installed';
+                    statusText.style.color = '#c62828';
+                    installButton.style.display = 'block';
+                    uninstallButton.style.display = 'none';
+                    selectButton.style.display = 'none';
                 }
             } catch (error) {
                 console.error('Failed to check model status:', error);
-                modelStatusText.textContent = 'Failed to check model status';
-                setTimeout(checkOllamaModelStatus, 2000); // Retry after 2 seconds
+                statusText.textContent = 'Status check failed';
+                setTimeout(() => checkOllamaModelStatus(modelName), 2000);
             }
         }
 
-        // Install Ollama model
-        async function installOllamaModel() {
-            const model = ollamaModelSelect.value;
+        async function installOllamaModel(modelName) {
+            const statusText = document.getElementById(`status-text-${modelName}`);
+            const installButton = document.getElementById(`install-${modelName}`);
+            const progressBar = document.getElementById(`progress-${modelName}`);
+            
             try {
                 installButton.disabled = true;
-                const loadingSpinner = document.createElement('span');
-                loadingSpinner.className = 'loading';
-                installButton.prepend(loadingSpinner);
-                installButton.textContent = 'Installing...';
+                statusText.textContent = 'Installing...';
+                progressBar.className = 'progress-bar active';
                 
-                const response = await fetch(`/api/models/ollama/${model}/install`, {
+                const response = await fetch(`/api/models/ollama/${modelName}/install`, {
                     method: 'POST'
                 });
                 
                 if (!response.ok) throw new Error('Failed to install model');
                 
-                await checkOllamaModelStatus();
+                await checkOllamaModelStatus(modelName);
                 status.textContent = 'Model installed successfully';
                 status.className = 'status success';
             } catch (error) {
@@ -232,12 +313,39 @@
                 status.className = 'status error';
             } finally {
                 installButton.disabled = false;
-                installButton.textContent = 'Install Model';
+                progressBar.className = 'progress-bar';
             }
         }
 
-        // Update provider configuration
-        async function updateConfig(provider, model) {
+        async function uninstallOllamaModel(modelName) {
+            const statusText = document.getElementById(`status-text-${modelName}`);
+            const uninstallButton = document.getElementById(`uninstall-${modelName}`);
+            const progressBar = document.getElementById(`progress-${modelName}`);
+            
+            try {
+                uninstallButton.disabled = true;
+                statusText.textContent = 'Uninstalling...';
+                progressBar.className = 'progress-bar active';
+                
+                const response = await fetch(`/api/models/ollama/${modelName}/uninstall`, {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) throw new Error('Failed to uninstall model');
+                
+                await checkOllamaModelStatus(modelName);
+                status.textContent = 'Model uninstalled successfully';
+                status.className = 'status success';
+            } catch (error) {
+                status.textContent = `Error: ${error.message}`;
+                status.className = 'status error';
+            } finally {
+                uninstallButton.disabled = false;
+                progressBar.className = 'progress-bar';
+            }
+        }
+
+        async function selectModel(provider, model) {
             try {
                 const response = await fetch('/api/config/llm', {
                     method: 'POST',
@@ -249,7 +357,24 @@
 
                 if (!response.ok) throw new Error('Failed to update configuration');
 
-                const data = await response.json();
+                currentProvider = provider;
+                currentModel = model;
+                
+                // Update UI to reflect selection
+                document.querySelectorAll('.model-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                document.querySelectorAll('.select-button').forEach(button => {
+                    button.classList.remove('selected');
+                    button.textContent = 'Select';
+                });
+
+                const selectedCard = document.getElementById(`${provider}-${model}`);
+                const selectedButton = selectedCard.querySelector('.select-button');
+                selectedCard.classList.add('selected');
+                selectedButton.classList.add('selected');
+                selectedButton.textContent = 'Selected';
+
                 status.textContent = `Successfully switched to ${provider} using ${model}`;
                 status.className = 'status success';
                 
@@ -263,51 +388,13 @@
 
         // Initialize
         async function init() {
-            await Promise.all([loadGptModels(), loadOllamaModels()]);
-            
             const savedProvider = localStorage.getItem('llmProvider') || 'openai';
-            providerSelect.value = savedProvider;
-            updateSections();
-            
             const savedModel = localStorage.getItem('llmModel');
-            if (savedModel) {
-                if (savedProvider === 'openai') {
-                    gptModelSelect.value = savedModel;
-                } else {
-                    ollamaModelSelect.value = savedModel;
-                    checkOllamaModelStatus();
-                }
-            }
+            currentProvider = savedProvider;
+            currentModel = savedModel;
+
+            await Promise.all([loadGptModels(), loadOllamaModels()]);
         }
-
-        function updateSections() {
-            const provider = providerSelect.value;
-            gptSection.className = provider === 'openai' ? 'model-section active' : 'model-section';
-            ollamaSection.className = provider === 'ollama' ? 'model-section active' : 'model-section';
-            
-            if (provider === 'ollama') {
-                checkOllamaModelStatus();
-            }
-        }
-
-        // Event listeners
-        providerSelect.addEventListener('change', () => {
-            updateSections();
-            const provider = providerSelect.value;
-            const model = provider === 'openai' ? gptModelSelect.value : ollamaModelSelect.value;
-            updateConfig(provider, model);
-        });
-
-        gptModelSelect.addEventListener('change', () => {
-            updateConfig('openai', gptModelSelect.value);
-        });
-
-        ollamaModelSelect.addEventListener('change', () => {
-            checkOllamaModelStatus();
-            updateConfig('ollama', ollamaModelSelect.value);
-        });
-
-        installButton.addEventListener('click', installOllamaModel);
 
         // Initialize the UI
         init();

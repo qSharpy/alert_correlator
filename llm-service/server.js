@@ -98,6 +98,23 @@ app.post('/api/models/ollama/:model/install', async (req, res) => {
     }
 });
 
+// API endpoint to uninstall Ollama model
+app.post('/api/models/ollama/:model/uninstall', async (req, res) => {
+    try {
+        const response = await fetch(`${process.env.OLLAMA_BASE_URL}/api/delete`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: req.params.model })
+        });
+        if (!response.ok) throw new Error('Failed to uninstall model');
+        res.json({ status: 'success' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // API endpoint to update LLM configuration
 app.post('/api/config/llm', (req, res) => {
     const { provider, model } = req.body;
