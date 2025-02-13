@@ -19,6 +19,14 @@ const GPT_MODELS = [
     'gpt-4-turbo'
 ];
 
+const DEFAULT_OLLAMA_MODELS = [
+    { name: 'llama2', displayName: 'Llama 2' },
+    { name: 'deepseek-coder:1.3b', displayName: 'DeepSeek Coder 1.3B' },
+    { name: 'mistral', displayName: 'Mistral' },
+    { name: 'neural-chat', displayName: 'Neural Chat' },
+    { name: 'codellama', displayName: 'Code Llama' }
+];
+
 app.use(express.json());
 app.use(express.static(__dirname));
 
@@ -31,11 +39,32 @@ app.get('/api/models/gpt', (req, res) => {
 app.get('/api/models/ollama', async (req, res) => {
     try {
         const response = await fetch(`${process.env.OLLAMA_BASE_URL}/api/tags`);
-        if (!response.ok) throw new Error('Failed to fetch Ollama models');
+        if (!response.ok) {
+            // If Ollama is not ready, return default models list
+            return res.json({ 
+                models: DEFAULT_OLLAMA_MODELS,
+                status: 'default'
+            });
+        }
         const data = await response.json();
-        res.json({ models: data.models });
+        const installedModels = data.models || [];
+        
+        // Combine default models with installed status
+        const models = DEFAULT_OLLAMA_MODELS.map(model => ({
+            ...model,
+            installed: installedModels.some(m => m.name === model.name)
+        }));
+        
+        res.json({ 
+            models,
+            status: 'live'
+        });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        // If Ollama is not available, return default models list
+        res.json({ 
+            models: DEFAULT_OLLAMA_MODELS,
+            status: 'default'
+        });
     }
 });
 
@@ -45,10 +74,10 @@ app.get('/api/models/ollama/:model/status', async (req, res) => {
         const response = await fetch(`${process.env.OLLAMA_BASE_URL}/api/tags`);
         if (!response.ok) throw new Error('Failed to fetch Ollama models');
         const data = await response.json();
-        const isInstalled = data.models.some(m => m.name === req.params.model);
+        const isInstalled = (data.models || []).some(m => m.name === req.params.model);
         res.json({ installed: isInstalled });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.json({ installed: false, error: error.message });
     }
 });
 

@@ -23,7 +23,7 @@ logger = logging.getLogger()
 app = Flask(__name__)
 
 # Configuration: using short intervals for demo purposes.
-INACTIVITY_GAP = 60          # seconds of inactivity before closing session
+INACTIVITY_GAP = 30          # seconds of inactivity before closing session
 MAX_SESSION_DURATION = 1800  # maximum session window in seconds (30 minutes)
 
 # Set your OpenAI API key via an environment variable

@@ -1,6 +1,9 @@
 # Use Node.js base image
 FROM node:18-slim
 
+# Install wget for healthcheck
+RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
+
 # Set working directory
 WORKDIR /app
 

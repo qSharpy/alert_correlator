@@ -73,6 +73,7 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            display: none;
         }
         .install-button:hover {
             background: #1565c0;
@@ -84,6 +85,21 @@
         .check-icon {
             color: #2e7d32;
             font-size: 1.2rem;
+            display: none;
+        }
+        .loading {
+            display: inline-block;
+            width: 1.2rem;
+            height: 1.2rem;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #1976d2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -112,8 +128,8 @@
             </div>
             <div class="model-status">
                 <span id="modelStatusText"></span>
-                <button id="installButton" class="install-button" style="display: none">Install Model</button>
-                <span id="checkIcon" class="check-icon" style="display: none">✓</span>
+                <button id="installButton" class="install-button">Install Model</button>
+                <span id="checkIcon" class="check-icon">✓</span>
             </div>
         </div>
 
@@ -141,6 +157,8 @@
                     .join('');
             } catch (error) {
                 console.error('Failed to load GPT models:', error);
+                status.textContent = 'Failed to load GPT models';
+                status.className = 'status error';
             }
         }
 
@@ -149,12 +167,21 @@
             try {
                 const response = await fetch('/api/models/ollama');
                 const data = await response.json();
+                
                 ollamaModelSelect.innerHTML = data.models
-                    .map(model => `<option value="${model.name}">${model.name}</option>`)
+                    .map(model => `<option value="${model.name}">${model.displayName}</option>`)
                     .join('');
-                checkOllamaModelStatus();
+
+                if (data.status === 'live') {
+                    checkOllamaModelStatus();
+                } else {
+                    modelStatusText.textContent = 'Ollama service starting...';
+                    setTimeout(loadOllamaModels, 2000); // Retry after 2 seconds
+                }
             } catch (error) {
                 console.error('Failed to load Ollama models:', error);
+                modelStatusText.textContent = 'Ollama service not available';
+                setTimeout(loadOllamaModels, 2000); // Retry after 2 seconds
             }
         }
 
@@ -176,6 +203,8 @@
                 }
             } catch (error) {
                 console.error('Failed to check model status:', error);
+                modelStatusText.textContent = 'Failed to check model status';
+                setTimeout(checkOllamaModelStatus, 2000); // Retry after 2 seconds
             }
         }
 
@@ -184,6 +213,9 @@
             const model = ollamaModelSelect.value;
             try {
                 installButton.disabled = true;
+                const loadingSpinner = document.createElement('span');
+                loadingSpinner.className = 'loading';
+                installButton.prepend(loadingSpinner);
                 installButton.textContent = 'Installing...';
                 
                 const response = await fetch(`/api/models/ollama/${model}/install`, {
@@ -217,6 +249,7 @@
 
                 if (!response.ok) throw new Error('Failed to update configuration');
 
+                const data = await response.json();
                 status.textContent = `Successfully switched to ${provider} using ${model}`;
                 status.className = 'status success';
                 
