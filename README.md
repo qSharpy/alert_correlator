@@ -11,6 +11,12 @@ A powerful alert correlation system that helps reduce alert fatigue by intellige
 - Comprehensive runbooks for common scenarios
 - Docker-based deployment for easy setup
 
+## 🎥 Demo
+
+Watch how the Alert Correlator works in action:
+
+[![Alert Correlator Demo](https://img.youtube.com/vi/PeIrrCHqbmY/0.jpg)](https://www.youtube.com/watch?v=PeIrrCHqbmY)
+
 ## 📁 Project Structure
 
 The project is organized into the following main directories:
