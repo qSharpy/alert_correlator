@@ -20,11 +20,11 @@ const GPT_MODELS = [
 ];
 
 const DEFAULT_OLLAMA_MODELS = [
-    { name: 'llama3.2:3b', displayName: 'Llama 3.2 3b' },
-    { name: 'deepseek-coder:1.3b', displayName: 'DeepSeek Coder 1.3B' },
-    { name: 'qwen2.5-coder:3b', displayName: 'Qwen2.5 coder 3b' },
-    { name: 'phi3:3.8b', displayName: 'Phi3 3.8b' },
-    { name: 'codegemma:2b', displayName: 'CodeGemma 2b' }
+    { name: 'llama3.2:3b', displayName: 'Llama 3.2' },
+    { name: 'deepseek-coder:1.3b', displayName: 'DeepSeek Coder' },
+    { name: 'qwen2.5-coder:3b', displayName: 'Qwen2.5 coder' },
+    { name: 'phi3:3.8b', displayName: 'Phi3' },
+    { name: 'codegemma:2b', displayName: 'CodeGemma' }
 ];
 
 app.use(express.json());
