@@ -17,6 +17,10 @@ Watch how the Alert Correlator works in action:
 
 [![Alert Correlator Demo](https://img.youtube.com/vi/PeIrrCHqbmY/0.jpg)](https://www.youtube.com/watch?v=PeIrrCHqbmY)
 
+See how to use local models and switch between different LLM providers:
+
+[![Alert Correlator LLM Features](https://img.youtube.com/vi/PLACEHOLDER/0.jpg)](https://www.youtube.com/watch?v=PLACEHOLDER)
+
 ## 📁 Project Structure
 
 The project is organized into the following main directories:
@@ -100,6 +104,21 @@ The main configuration is done through environment variables and the following f
 - `config/monitoring/prometheus.yml`: Prometheus configuration
 - `config/logging/loki-config.yaml`: Loki configuration
 - `config/logging/promtail-config.yaml`: Log shipping configuration
+
+### LLM Service Configuration
+
+The Alert Correlator now supports multiple LLM providers:
+
+1. **Local Models with Ollama**: Run AI models locally on your machine
+   - Supports various open-source models
+   - No internet connection required for inference
+   - Lower latency for quick responses
+
+2. **OpenAI**: Use OpenAI's powerful GPT models
+   - Requires API key
+   - Best-in-class performance
+
+You can switch between these providers through the LLM service interface at runtime, allowing for flexible model selection based on your needs.
 
 ### Runbooks
 
