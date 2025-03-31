@@ -35,6 +35,44 @@ const runbookStructure = {
             'datasource_connection_issues': 'Data Source Connection Issues',
             'high_query_latency': 'High Query Latency'
         }
+    },
+    'microservices': {
+        name: 'Microservices',
+        alerts: {
+            'api_high_error_rate': 'API High Error Rate',
+            'api_high_latency': 'API High Latency',
+            'api_high_cpu_usage': 'API High CPU Usage',
+            'api_circuit_breaker_open': 'API Circuit Breaker Open'
+        }
+    },
+    'database': {
+        name: 'Database',
+        alerts: {
+            'connection_pool_exhaustion': 'Connection Pool Exhaustion',
+            'slow_queries': 'Slow Queries',
+            'replication_lag': 'Replication Lag',
+            'disk_space_critical': 'Disk Space Critical'
+        }
+    },
+    'network': {
+        name: 'Network',
+        alerts: {
+            'dns_resolution_failures': 'DNS Resolution Failures',
+            'load_balancer_health_check_failures': 'Load Balancer Health Check Failures',
+            'network_latency_high': 'Network Latency High',
+            'network_packet_loss': 'Network Packet Loss'
+        }
+    },
+    'complex': {
+        name: 'Complex Scenarios',
+        alerts: {
+            'cascading_failure': 'Cascading Failure',
+            'high_volume_alerts': 'High Volume Alerts',
+            'mixed_severity_alerts': 'Mixed Severity Alerts',
+            'api_gateway_failures': 'API Gateway Failures',
+            'distributed_tracing_issues': 'Distributed Tracing Issues',
+            'real_world_incident': 'Real World Incident'
+        }
     }
 };
 

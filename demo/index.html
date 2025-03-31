@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alert Correlator Demo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="presentation">
+        <!-- Navigation controls -->
+        <div class="controls">
+            <button id="prev-btn">Previous</button>
+            <span id="slide-counter">1 / 8</span>
+            <button id="next-btn">Next/Continue</button>
+        </div>
+
+        <!-- Slides container -->
+        <div class="slides-container">
+            <!-- Slide 1: Title -->
+            <div class="slide active" id="slide-1">
+                <div class="slide-content">
+                    <h1>🚨 Alert Fatigue No More</h1>
+                    <h2>Building an AI-Powered Correlation Engine for Prometheus</h2>
+                    <div class="subtitle">A powerful alert correlation system that helps reduce alert fatigue by intelligently grouping and analyzing related alerts from your monitoring stack.</div>
+                    <div class="author">Vasile Bogdan Bujor</div>
+                </div>
+            </div>
+
+            <!-- Slide 2: What the App Does -->
+            <div class="slide" id="slide-2">
+                <div class="slide-content">
+                    <h2>What the App Does</h2>
+                    <div class="two-column">
+                        <div class="column">
+                            <p>The Alert Correlator is designed to solve a common problem in modern monitoring systems: <strong>alert fatigue</strong>.</p>
+                            <p>When a system issue occurs, it often triggers multiple related alerts, overwhelming operators with notifications.</p>
+                            <p>This application:</p>
+                            <ul>
+                                <li>Receives alerts from Prometheus AlertManager</li>
+                                <li>Groups related alerts into sessions</li>
+                                <li>Uses AI to analyze alert patterns and determine root causes</li>
+                                <li>Generates comprehensive incident reports</li>
+                                <li>Provides runbooks for common scenarios</li>
+                                <li>Visualizes correlation data in Grafana</li>
+                            </ul>
+                        </div>
+                        <div class="column">
+                            <div class="image-container">
+                                <img src="alert_flow_simple.png" alt="Alert Flow Simple Diagram">
+                                <p class="caption">Alert Correlation Flow</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 3: Application Overview -->
+            <div class="slide" id="slide-3">
+                <div class="slide-content">
+                    <h2>Application Overview</h2>
+                    <div class="image-container large">
+                        <img src="alert_flow.png" alt="Detailed Alert Flow Diagram">
+                        <p class="caption">Detailed Alert Correlation Flow</p>
+                    </div>
+                    <div class="description">
+                        <p>The system integrates multiple components to create a complete alert correlation pipeline:</p>
+                        <ol>
+                            <li><strong>External Systems</strong> send alerts to AlertManager</li>
+                            <li><strong>AlertManager</strong> forwards alerts to the Backend Service</li>
+                            <li><strong>Backend Service</strong> processes alerts and logs to Loki</li>
+                            <li><strong>LLM Service</strong> analyzes alerts with AI and accesses runbook knowledge</li>
+                            <li><strong>Grafana</strong> visualizes the correlation results and logs</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 4: Capabilities -->
+            <div class="slide" id="slide-4">
+                <div class="slide-content">
+                    <h2>Capabilities</h2>
+                    <div class="capabilities">
+                        <div class="capability">
+                            <h3>🔍 Intelligent Alert Correlation</h3>
+                            <p>Groups related alerts based on temporal proximity, service relationships, and alert patterns.</p>
+                        </div>
+                        <div class="capability">
+                            <h3>🤖 AI-Powered Analysis</h3>
+                            <p>Uses LLM models (OpenAI or local Ollama) to analyze alert patterns and determine root causes.</p>
+                        </div>
+                        <div class="capability">
+                            <h3>📊 Real-time Visualization</h3>
+                            <p>Grafana dashboards show correlation effectiveness, alert patterns, and incident reports.</p>
+                        </div>
+                        <div class="capability">
+                            <h3>📝 Automated Incident Reports</h3>
+                            <p>Generates comprehensive incident reports with root cause analysis and remediation steps.</p>
+                        </div>
+                        <div class="capability">
+                            <h3>📚 Integrated Runbooks</h3>
+                            <p>Provides access to runbooks for common scenarios, organized by component.</p>
+                        </div>
+                        <div class="capability">
+                            <h3>🔄 Flexible LLM Providers</h3>
+                            <p>Supports both cloud-based (OpenAI) and local (Ollama) LLM models for analysis.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 5: Main Script Overview -->
+            <div class="slide" id="slide-5">
+                <div class="slide-content">
+                    <h2>Alert Correlator Script Overview</h2>
+                    <div class="code-overview">
+                        <div class="code-section">
+                            <h3>Alert Reception</h3>
+                            <pre><code>@app.route('/alert', methods=['POST'])
+def receive_alert():
+    # Receive alerts from AlertManager webhook
+    # Extract alert data
+    # Normalize alert format
+    # Add to current session
+    # Update metrics</code></pre>
+                        </div>
+                        <div class="code-section">
+                            <h3>Session Management</h3>
+                            <pre><code>def session_monitor():
+    # Background thread that checks current session
+    # If inactivity gap or max duration reached:
+    #   - Process session
+    #   - Generate incident report
+    #   - Update metrics
+    #   - Reset session</code></pre>
+                        </div>
+                        <div class="code-section">
+                            <h3>Incident Report Generation</h3>
+                            <pre><code>def generate_incident_report(alerts):
+    # Get LLM configuration (OpenAI or Ollama)
+    # Format alert data for LLM
+    # Send prompt to LLM
+    # Process response
+    # Add runbook URLs
+    # Return formatted report</code></pre>
+                        </div>
+                    </div>
+                    <div class="key-features">
+                        <p><strong>Key Features:</strong></p>
+                        <ul>
+                            <li>Session-based alert grouping with configurable timeouts</li>
+                            <li>Prometheus metrics for monitoring correlation effectiveness</li>
+                            <li>Support for multiple LLM providers (OpenAI, Ollama)</li>
+                            <li>Automatic runbook linking</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 6: Container Demo -->
+            <div class="slide" id="slide-6">
+                <div class="slide-content">
+                    <h2>Container Demo</h2>
+                    <div class="containers">
+                        <div class="container-card">
+                            <h3>Alert Manager</h3>
+                            <p>Receives and routes alerts to the Alert Correlator</p>
+                            <a href="http://localhost:9093" target="_blank" class="container-link">Open AlertManager</a>
+                        </div>
+                        <div class="container-card">
+                            <h3>Prometheus</h3>
+                            <p>Collects metrics and generates alerts</p>
+                            <a href="http://localhost:9090" target="_blank" class="container-link">Open Prometheus</a>
+                        </div>
+                        <div class="container-card">
+                            <h3>Grafana</h3>
+                            <p>Visualizes correlation data and metrics</p>
+                            <a href="http://localhost:3001" target="_blank" class="container-link">Open Grafana</a>
+                        </div>
+                        <div class="container-card">
+                            <h3>Runbooks</h3>
+                            <p>Documentation for alert resolution</p>
+                            <a href="http://localhost:3002" target="_blank" class="container-link">Open Runbooks</a>
+                        </div>
+                        <div class="container-card">
+                            <h3>LLM Service</h3>
+                            <p>AI-powered alert analysis</p>
+                            <a href="http://localhost:3003" target="_blank" class="container-link">Open LLM Service</a>
+                        </div>
+                        <div class="container-card">
+                            <h3>Alert Correlator API</h3>
+                            <p>Core correlation engine</p>
+                            <a href="http://localhost:5000/metrics" target="_blank" class="container-link">View Metrics</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 7: Live Demo -->
+            <div class="slide" id="slide-7">
+                <div class="slide-content">
+                    <h2>Live Demo</h2>
+                    <div class="live-demo">
+                        <h3>Let's see it in action!</h3>
+                        <div class="demo-steps">
+                            <ol>
+                                <li>
+                                    <strong>Generate mixed-severity alerts:</strong>
+                                    <pre><code>make mixed-severity</code></pre>
+                                </li>
+                                <li>
+                                    <strong>Check AlertManager:</strong>
+                                    <a href="http://localhost:9093/#/alerts" target="_blank">View Alerts</a>
+                                </li>
+                                <li>
+                                    <strong>Monitor Alert Correlator logs:</strong>
+                                    <pre><code>docker compose -f docker/docker-compose.yml logs -f alert-correlator</code></pre>
+                                </li>
+                                <li>
+                                    <strong>View correlation in Grafana:</strong>
+                                    <a href="http://localhost:3001/d/alert-correlator-dashboard" target="_blank">Open Dashboard</a>
+                                </li>
+                                <li>
+                                    <strong>Check the runbooks for resolution:</strong>
+                                    <a href="http://localhost:3002" target="_blank">Open Runbooks</a>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 8: Questions -->
+            <div class="slide" id="slide-8">
+                <div class="slide-content">
+                    <h2>Questions?</h2>
+                    <div class="questions-section">
+                        <div class="questions-text">
+                            <p>Thank you</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
